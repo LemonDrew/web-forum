@@ -1,5 +1,11 @@
+import './PostContainer.css'
+import Post from './Post'
+
 function PostContainer() {
-    return <h1>This is a post container</h1>
+    return <div>
+        <p><Post/></p>
+        <p><Post/></p>
+        </div>
 }
 
 export default PostContainer
