@@ -7,7 +7,6 @@ import (
 
 	"github.com/CVWO/sample-go-app/internal/router"
 	"github.com/CVWO/sample-go-app/internal/database"
-	"github.com/CVWO/sample-go-app/internal/dataaccess"
 )
 
 func main() {

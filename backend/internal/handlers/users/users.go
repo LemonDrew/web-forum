@@ -7,8 +7,6 @@ import (
 
 	"github.com/CVWO/sample-go-app/internal/api"
 	users "github.com/CVWO/sample-go-app/internal/dataaccess"
-	"github.com/CVWO/sample-go-app/internal/database"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -20,27 +18,30 @@ const (
 	ErrEncodeView              = "Failed to retrieve users in %s"
 )
 
-func HandleList(w http.ResponseWriter, r *http.Request) (*api.Response, error) {
-	db, err := database.GetDB()
-
+func AddUser(w http.ResponseWriter, r *http.Request) (*api.Response, error) {
+	var userRequest struct {
+		Name string `json:"name"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&userRequest)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf(ErrRetrieveDatabase, ListUsers))
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return nil, err
+	}
+	//Register
+	err = users.RegisterUser(userRequest.Name)
+	if err != nil {
+		// If there's an error during registration, return it
+		http.Error(w, "Failed to register user", http.StatusInternalServerError)
+		return nil, err
 	}
 
-	users, err := users.List(db)
-	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf(ErrRetrieveUsers, ListUsers))
-	}
-
-	data, err := json.Marshal(users)
-	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf(ErrEncodeView, ListUsers))
-	}
-
-	return &api.Response{
+	response := &api.Response{
 		Payload: api.Payload{
-			Data: data,
+			Data: []byte(fmt.Sprintf("User '%s' added successfully", userRequest.Name)),
 		},
-		Messages: []string{SuccessfulListUsersMessage},
-	}, nil
+		Messages: []string{"User registered successfully"},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	return response, nil
 }

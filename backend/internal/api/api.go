@@ -14,3 +14,8 @@ type Response struct {
 	Messages  []string `json:"messages"`
 	ErrorCode int      `json:"errorCode"`
 }
+
+// Data to retrieve data regarding user's information
+type User struct {
+	Name string  `json:"name"`
+}
