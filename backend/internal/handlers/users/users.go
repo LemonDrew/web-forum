@@ -18,19 +18,20 @@ const (
 	ErrEncodeView              = "Failed to retrieve users in %s"
 )
 
+// AddUser registers a new user
 func AddUser(w http.ResponseWriter, r *http.Request) (*api.Response, error) {
 	var userRequest struct {
 		Name string `json:"name"`
 	}
+
 	err := json.NewDecoder(r.Body).Decode(&userRequest)
 	if err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return nil, err
 	}
-	//Register
+
 	err = users.RegisterUser(userRequest.Name)
 	if err != nil {
-		// If there's an error during registration, return it
 		http.Error(w, "Failed to register user", http.StatusInternalServerError)
 		return nil, err
 	}
@@ -40,6 +41,39 @@ func AddUser(w http.ResponseWriter, r *http.Request) (*api.Response, error) {
 			Data: []byte(fmt.Sprintf("User '%s' added successfully", userRequest.Name)),
 		},
 		Messages: []string{"User registered successfully"},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	return response, nil
+}
+
+// CheckUser checks if a user exists in the database
+func CheckUser(w http.ResponseWriter, r *http.Request) (*api.Response, error) {
+	var userRequest struct {
+		Name string `json:"name"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&userRequest)
+	if err != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return nil, err
+	}
+
+	exists, err := users.AuthenticateUser(userRequest.Name)
+	if err != nil {
+		http.Error(w, "Failed to check user", http.StatusInternalServerError)
+		return nil, err
+	}
+
+	if !exists {
+		http.Error(w, "User does not exist in the database", http.StatusNotFound)
+		return nil, fmt.Errorf("user does not exist: %s", userRequest.Name)
+	}
+
+	response := &api.Response{
+		Payload: api.Payload{
+			Data: []byte(fmt.Sprintf("User '%s' found in the database", userRequest.Name)),
+		},
+		Messages: []string{"User found in the database"},
 	}
 
 	w.Header().Set("Content-Type", "application/json")

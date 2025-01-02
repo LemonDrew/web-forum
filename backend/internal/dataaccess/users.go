@@ -1,21 +1,11 @@
 package users
 
 import (
+	"fmt"
 	"log"
 	"github.com/CVWO/sample-go-app/internal/database"
-	"github.com/CVWO/sample-go-app/internal/models"
-	
-)
 
-func List(db *database.Database) ([]models.User, error) {
-	users := []models.User{
-		{
-			ID:   1,
-			Name: "CVWO",
-		},
-	}
-	return users, nil
-}
+)
 
 func RegisterUser(name string) error {
 	query := `INSERT INTO "Users" (name) VALUES ($1)`
@@ -28,3 +18,21 @@ func RegisterUser(name string) error {
 	log.Printf("User '%s' added successfully!", name)
 	return nil
 }
+
+func AuthenticateUser(name string) (bool, error) {
+	query := `SELECT COUNT(*) FROM "Users" WHERE name = $1`
+	
+	var count int
+	err := database.DB.QueryRow(query, name).Scan(&count)
+	if err != nil {
+		log.Printf("Error checking user existence: %v", err)
+		return false, fmt.Errorf("failed to check user existence: %w", err)
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+	log.Printf("User '%s' is not found!", name)
+	return false, nil
+}
+
