@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 function LoginPage() {
     const navigate = useNavigate();
     const [inputStates, setInputStates] = useState({ username: "", newUsername: "" });
+    const [isValid, setIsValid] = useState(null); // State to track username validity
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -14,23 +15,41 @@ function LoginPage() {
         }));
     };
 
-    function checkUserName(username) {
-        return true;
-    }
+    const checkUserName = async (username) => {
+        try {
+            const response = await fetch('http://localhost:8000/authenticate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: username }),
+            });
+            const data = await response.json();
+            console.log("-----------DATA IS---------", data);
+            return data.success; 
+        } catch (error) {
+            console.error("Error during fetch:", error);
+            return false; 
+        }
+    };
 
-    function handleSubmit(event) {
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
-        const username = formData.get('username'); // Use correct name attribute
-        let inDataBase = checkUserName(username);
+        const username = inputStates.username;
+
+        if (!username) {
+            alert("Please enter a username.");
+            return;
+        }
+
+        const inDataBase = await checkUserName(username);
         if (inDataBase) {
             navigate("/Forum");
         } else {
-            alert("Such a username does not exist!")
+            alert("Such a username does not exist!");
         }
-        
-    }
+    };
 
     return (
         <form onSubmit={handleSubmit}>

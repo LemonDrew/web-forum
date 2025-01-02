@@ -19,3 +19,7 @@ type Response struct {
 type User struct {
 	Name string  `json:"name"`
 }
+
+type LoginResponse struct {
+	Success bool `json:"success"`
+}
