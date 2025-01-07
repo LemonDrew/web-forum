@@ -33,17 +33,51 @@ function LoginPage() {
         }
     };
 
+    const RegisterUserName = async (username) => {
+        try {
+            const response = await fetch('http://localhost:8000/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: username }),
+            });
+            const data = await response.json();
+            console.log("-----------DATA IS---------", data);
+            return data.success; 
+        } catch (error) {
+            console.error("Error during fetch:", error);
+            return false; 
+        }
+    };
+    
+
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         const username = inputStates.username;
+        const newUsername = inputStates.newUsername;
+        let inDataBase = null;
+
+        console.log("New user name is", newUsername)
+        console.log("user name is", username)
 
         if (!username) {
-            alert("Please enter a username.");
-            return;
+            console.log("dwedewqd")
+            if (!newUsername) {
+                console.log("dwedewqd");
+                alert("Please enter a username.");
+                return;
+            }
+        } 
+        if (username) {
+            console.log("checking");
+            inDataBase = await checkUserName(username);
+        } else if (newUsername) {
+            console.log("registering");
+            inDataBase = await RegisterUserName(newUsername);
         }
-
-        const inDataBase = await checkUserName(username);
+        console.log("RESPONSE IS", inDataBase)
         if (inDataBase) {
             navigate("/Forum");
         } else {

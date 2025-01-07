@@ -23,3 +23,7 @@ type User struct {
 type LoginResponse struct {
 	Success bool `json:"success"`
 }
+
+type AddPostResponse struct {
+	Success bool `json:"success"`
+}

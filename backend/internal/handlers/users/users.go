@@ -2,39 +2,37 @@ package users
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/CVWO/sample-go-app/internal/api"
-	users "github.com/CVWO/sample-go-app/internal/dataaccess"
+	users "github.com/CVWO/sample-go-app/internal/dataaccess/users"
 )
 
 // AddUser registers a new user
-func AddUser(w http.ResponseWriter, r *http.Request) (*api.Response, error) {
+func RegisterUserHelper(w http.ResponseWriter, r *http.Request) (*api.LoginResponse, error) {
 	var userRequest struct {
 		Name string `json:"name"`
 	}
-
 	err := json.NewDecoder(r.Body).Decode(&userRequest)
-	err = users.RegisterUser(userRequest.Name)
 	if err != nil {
-		http.Error(w, "Failed to register user", http.StatusInternalServerError)
+		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return nil, err
 	}
 
-	response := &api.Response{
-		Payload: api.Payload{
-			Data: []byte(fmt.Sprintf(`{ success : true}`)),
-		},
-		Messages: []string{"User registered successfully"},
+	exists, err := users.RegisterUser(userRequest.Name)
+	if err != nil {
+		http.Error(w, "Failed to check user", http.StatusInternalServerError)
+		return nil, err
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	response := &api.LoginResponse{
+		Success: exists,
+	}
 	return response, nil
 }
 
 // CheckUser checks if a user exists in the database
-func CheckUser(w http.ResponseWriter, r *http.Request) (*api.LoginResponse, error) {
+func AuthenticateUserHelper(w http.ResponseWriter, r *http.Request) (*api.LoginResponse, error) {
 	var userRequest struct {
 		Name string `json:"name"`
 	}

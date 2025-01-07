@@ -10,7 +10,7 @@ func Setup() chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5174"}, // Add the correct frontend origin
+		AllowedOrigins:   []string{"http://localhost:5173"}, // Add the correct frontend origin
 		AllowedMethods:   []string{"GET", "POST"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},

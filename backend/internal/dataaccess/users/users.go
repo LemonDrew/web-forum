@@ -7,16 +7,26 @@ import (
 
 )
 
-func RegisterUser(name string) error {
-	query := `INSERT INTO "Users" (name) VALUES ($1)`
-	_, err := database.DB.Exec(query, name)
+func RegisterUser(name string) (bool, error) {
+	query := `SELECT COUNT(*) FROM "Users" WHERE name = $1`
+
+	var count int
+	err := database.DB.QueryRow(query, name).Scan(&count)
 	if err != nil {
-		log.Printf("Failed to insert user: %v", err)
-		return err
+		return false, fmt.Errorf("failed to check if user exists: %w", err)
+	}
+
+	if count > 0 { // User already exists in the database
+		return false, nil
+	}
+	insertQuery := `INSERT INTO "Users" (name) VALUES ($1)`
+	_, err = database.DB.Exec(insertQuery, name)
+	if err != nil {
+		return false, fmt.Errorf("failed to add user: %w", err)
 	}
 
 	log.Printf("User '%s' added successfully!", name)
-	return nil
+	return true, nil 
 }
 
 func AuthenticateUser(name string) (bool, error) {
