@@ -57,7 +57,7 @@ function AddPost() {
 
     return (
         <div>
-            <div className="body">
+            <div className="addPost">
                 <input
                     type="text"
                     placeholder="Enter Topic"
