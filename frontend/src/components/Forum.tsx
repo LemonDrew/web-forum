@@ -1,8 +1,7 @@
 import PostContainer from "./PostContainer";
 import { useLocation } from "react-router-dom";
-
 import AddPost from "./AddPost";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Import useEffect
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import AppBar from '@mui/material/AppBar';
@@ -27,15 +26,45 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 // Page where the forum is located
 function Forum() {
   const location = useLocation();
-  const user = location.state?.username; //Retrieves username from login page
-
-  const data = [
-    { Topic: "This is the first post", Comments: [{ Name: "Jack", Message: "What??" }, { Name: "Jane", Message: "Hello" }] },
-    { Topic: "This is the second post", Comments: [{ Name: "Jack", Message: "What??" }] }
-  ];
+  const user = location.state?.username; // Retrieves username from login page
 
   const [open, setOpen] = useState(false);
   const [currentPost, setCurrentPost] = useState(null); // To hold the currently selected post for dialog
+  const [data, setData] = useState([]); // State to store fetched data
+
+  // Fetch data when the component mounts
+  useEffect(() => {
+    const retrieveData = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/retrieve', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log("-----------DATA IS---------", result);
+
+        // Assuming the data is a list of posts
+        if (result && Array.isArray(result)) {
+          alert("Successfully retrieved posts!");
+          setData(result); // Update the state with fetched data
+        } else {
+          alert("Failed to retrieve posts: Data is not in expected format.");
+        }
+      } catch (error) {
+        console.error("Error during fetch:", error);
+        alert("Failed to retrieve posts. Please check the console for details.");
+      }
+    };
+
+    retrieveData(); // Call the fetch function
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   const handleClickOpen = (post) => {
     setCurrentPost(post);

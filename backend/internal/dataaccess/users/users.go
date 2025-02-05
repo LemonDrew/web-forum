@@ -8,7 +8,7 @@ import (
 )
 
 func RegisterUser(name string) (bool, error) {
-	query := `SELECT COUNT(*) FROM "Users" WHERE name = $1`
+	query := `SELECT COUNT(*) FROM "users" WHERE name = $1`
 
 	var count int
 	err := database.DB.QueryRow(query, name).Scan(&count)
@@ -19,7 +19,7 @@ func RegisterUser(name string) (bool, error) {
 	if count > 0 { // User already exists in the database
 		return false, nil
 	}
-	insertQuery := `INSERT INTO "Users" (name) VALUES ($1)`
+	insertQuery := `INSERT INTO "users" (name) VALUES ($1)`
 	_, err = database.DB.Exec(insertQuery, name)
 	if err != nil {
 		return false, fmt.Errorf("failed to add user: %w", err)
@@ -30,7 +30,7 @@ func RegisterUser(name string) (bool, error) {
 }
 
 func AuthenticateUser(name string) (bool, error) {
-	query := `SELECT COUNT(*) FROM "Users" WHERE name = $1`
+	query := `SELECT COUNT(*) FROM "users" WHERE name = $1`
 	
 	var count int
 	err := database.DB.QueryRow(query, name).Scan(&count)

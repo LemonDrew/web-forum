@@ -27,3 +27,10 @@ type LoginResponse struct {
 type AddPostResponse struct {
 	Success bool `json:"success"`
 }
+
+type RetrievePostResponse struct {
+	Identity_number int `json:"identity_number"`
+	Topic    string `json:"topic"`
+	PostType string `json:"type"`
+	Username string `json:"username"`
+}

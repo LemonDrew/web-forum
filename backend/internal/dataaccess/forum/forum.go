@@ -3,12 +3,11 @@ package forum
 import (
 	"fmt"
 	"github.com/CVWO/sample-go-app/internal/database"
-
 )
 
-func AddPost(topic string, postType string, id int) (bool, error) {
-    query := `INSERT INTO "Forum" ("Topic", "Type", "ID") VALUES ($1, $2, $3)`
-    _, err := database.DB.Exec(query, topic, postType, id)
+func AddPost(topic string, postType string, username string) (bool, error) {
+    query := `INSERT INTO "forum" ("topic", "type", "username") VALUES ($1, $2, $3)`
+    _, err := database.DB.Exec(query, topic, postType, username)
 
     fmt.Printf("Error is: %v\n", err)
 
@@ -18,4 +17,33 @@ func AddPost(topic string, postType string, id int) (bool, error) {
 
 	fmt.Printf("Query success")
     return true, nil
+}
+
+func RetrievePost() ([]map[string]interface{}, error) {
+	query := `SELECT identity_number, topic, type, username FROM "forum"`
+	rows, err := database.DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving post: %w", err)
+	}
+	defer rows.Close()
+	var rawData []map[string]interface{}
+	for rows.Next() {
+		var identityNumber int
+		var topic, postType, username string
+		err := rows.Scan(&identityNumber, &topic, &postType, &username)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning row: %w", err)
+		}
+		rawData = append(rawData, map[string]interface{}{
+			"identity_number": identityNumber,
+			"topic":           topic,
+			"type":            postType,
+			"username":        username,
+		})
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+	return rawData, nil
 }
