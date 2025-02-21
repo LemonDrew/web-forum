@@ -29,8 +29,9 @@ type AddPostResponse struct {
 }
 
 type RetrievePostResponse struct {
-	Identity_number int `json:"identity_number"`
-	Topic    string `json:"topic"`
-	PostType string `json:"type"`
-	Username string `json:"username"`
+    Identity_number int         `json:"identity_number"`
+    Topic           string      `json:"topic"`
+    PostType        string      `json:"type"`
+    Username        string      `json:"username"`
+    UserComments    []interface{} `json:"user_comments"` // Use []interface{} for JSON array or use a more specific type
 }

@@ -33,7 +33,7 @@ func GetRoutes() func(r chi.Router) {
 			json.NewEncoder(w).Encode(response)
 		})
 
-		r.Post("/add", func(w http.ResponseWriter, req *http.Request) {
+		r.Post("/addPost", func(w http.ResponseWriter, req *http.Request) {
 			response, err := forum.AddPostHelper(w, req)
 			if err != nil {
 				http.Error(w, "Failed to add post", http.StatusInternalServerError)
@@ -48,7 +48,18 @@ func GetRoutes() func(r chi.Router) {
 		r.Get("/retrieve", func(w http.ResponseWriter, req *http.Request) {
 			response, err := forum.RetrievePostHelper(w, req)
 			if err != nil {
-				http.Error(w, "Failed to add post", http.StatusInternalServerError)
+				http.Error(w, "Failed to retrieve post", http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(response)
+		})
+
+		r.Post("/addComment", func(w http.ResponseWriter, req *http.Request) {
+			response, err := forum.AddCommentHelper(w, req)
+			if err != nil {
+				http.Error(w, "Failed to add comment", http.StatusInternalServerError)
 				return
 			}
 

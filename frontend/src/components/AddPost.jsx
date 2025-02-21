@@ -17,7 +17,7 @@ function AddPost({ user, refreshData }) {  // Receive refreshData as a prop
       try {
         console.log("Sending request with:", { topic, type, user });
   
-        const response = await fetch('http://localhost:8000/add', {
+        const response = await fetch('http://localhost:8000/addPost', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ Topic: topic, Type: type, Username: user }),
