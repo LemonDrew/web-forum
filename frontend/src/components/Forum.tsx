@@ -32,39 +32,45 @@ function Forum() {
   const [currentPost, setCurrentPost] = useState(null); // To hold the currently selected post for dialog
   const [data, setData] = useState([]); // State to store fetched data
 
+
+  const retrieveData = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/retrieve', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("-----------DATA IS---------", result);
+
+      // Assuming the data is a list of posts
+      if (result && Array.isArray(result)) {
+        alert("Successfully retrieved posts!");
+        setData(result); // Update the state with fetched data
+      } else {
+        alert("Failed to retrieve posts: Data is not in expected format.");
+      }
+    } catch (error) {
+      console.error("Error during fetch:", error);
+      alert("Failed to retrieve posts. Please check the console for details.");
+    }
+  };
+
   // Fetch data when the component mounts
   useEffect(() => {
-    const retrieveData = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/retrieve', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log("-----------DATA IS---------", result);
-
-        // Assuming the data is a list of posts
-        if (result && Array.isArray(result)) {
-          alert("Successfully retrieved posts!");
-          setData(result); // Update the state with fetched data
-        } else {
-          alert("Failed to retrieve posts: Data is not in expected format.");
-        }
-      } catch (error) {
-        console.error("Error during fetch:", error);
-        alert("Failed to retrieve posts. Please check the console for details.");
-      }
-    };
-
     retrieveData(); // Call the fetch function
   }, []); // Empty dependency array ensures this runs only once on mount
+
+
+  const refreshData = () => {
+    retrieveData();
+  }
 
   const handleClickOpen = (post) => {
     setCurrentPost(post);
@@ -78,13 +84,16 @@ function Forum() {
 
   return (
     <Box sx={{ padding: 3 }}>
-      <AddPost user={user} />
+      <AddPost user={user} refreshData={refreshData}/>
       <Box sx={{ marginTop: 3 }}>
         {data.map((post, index) => (
           <Card key={index} sx={{ marginBottom: 2, boxShadow: 3 }}>
             <CardContent>
               <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 1 }}>
-                {post.Topic}
+                {post.topic}
+              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 1 }}>
+                Posted by {post.username}
               </Typography>
               <Button
                 variant="contained"
