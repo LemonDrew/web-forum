@@ -67,4 +67,28 @@ func RetrievePostHelper(w http.ResponseWriter, r *http.Request) ([]api.RetrieveP
 	return posts, nil
 }
 
+func AddCommentHelper(w http.ResponseWriter, r *http.Request) (*api.AddCommentResponse, error) {
+    var userRequest struct {
+		Identity_number    int `json:"identity_number"`
+		Comment string `json:"comment"`
+		Username string `json:"username"`
+	}
 
+	err := json.NewDecoder(r.Body).Decode(&userRequest)
+	if err != nil {
+		http.Error(w, "Invalid input: unable to decode JSON", http.StatusBadRequest)
+		return nil, err
+	}
+
+	success, err := forum.AddComment(userRequest.Identity_number, userRequest.Comment, userRequest.Username)
+	if err != nil {
+		http.Error(w, "Failed to add comment to database", http.StatusInternalServerError)
+		return nil, err
+	}
+
+	// Create response
+	response := &api.AddCommentResponse{
+		Success: success,
+	}
+	return response, nil
+}

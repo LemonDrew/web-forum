@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/CVWO/sample-go-app/internal/database"
 	"encoding/json"
+	"database/sql"
 )
 
 func AddPost(topic string, postType string, username string) (bool, error) {
@@ -60,4 +61,49 @@ func RetrievePost() ([]map[string]interface{}, error) {
 		return nil, fmt.Errorf("error iterating rows: %w", err)
 	}
 	return rawData, nil
+}
+
+// AddComment appends a new comment to the user_comments JSONB column
+func AddComment(identityNumber int, comment string, username string) (bool, error) {
+	// Fetch the existing user_comments from the database
+	var existingComments [][]string
+	query := `SELECT user_comments FROM forum WHERE identity_number = $1`
+	row := database.DB.QueryRow(query, identityNumber)
+
+	var userCommentsJSON []byte
+	err := row.Scan(&userCommentsJSON)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, fmt.Errorf("no post found with identity_number %d", identityNumber)
+		}
+		return false, fmt.Errorf("error retrieving user_comments: %w", err)
+	}
+
+	// Unmarshal existing comments if there are any
+	if len(userCommentsJSON) > 0 {
+		err = json.Unmarshal(userCommentsJSON, &existingComments)
+		if err != nil {
+			return false, fmt.Errorf("error unmarshaling user_comments: %w", err)
+		}
+	}
+
+	// Append the new comment as an array [username, comment]
+	newComment := []string{username, comment}
+	existingComments = append(existingComments, newComment)
+
+	// Marshal back to JSON format
+	updatedCommentsJSON, err := json.Marshal(existingComments)
+	if err != nil {
+		return false, fmt.Errorf("error marshaling updated user_comments: %w", err)
+	}
+
+	// Update the database with the new JSON array
+	updateQuery := `UPDATE forum SET user_comments = $1 WHERE identity_number = $2`
+	_, err = database.DB.Exec(updateQuery, updatedCommentsJSON, identityNumber)
+	if err != nil {
+		return false, fmt.Errorf("error updating user_comments: %w", err)
+	}
+
+	fmt.Println("Comment successfully added.")
+	return true, nil
 }

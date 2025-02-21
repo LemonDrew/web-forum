@@ -35,3 +35,7 @@ type RetrievePostResponse struct {
     Username        string      `json:"username"`
     UserComments    []interface{} `json:"user_comments"` // Use []interface{} for JSON array or use a more specific type
 }
+
+type AddCommentResponse struct {
+	Success bool `json:"success"`
+}
