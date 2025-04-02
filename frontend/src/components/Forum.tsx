@@ -133,8 +133,8 @@ function Forum() {
 
   return (
   
-    <Box sx={{ padding: 3 }}>
-      <Navbar user={user}/>
+    <Box sx={{ padding: 3, mt: 10 }}> {/* Adjust `mt` based on NavBar height */}
+      <Navbar user={user} />
       <AddPost user={user} refreshData={refreshData} />
       <Box sx={{ marginTop: 3 }}>
         {data.map((post, index) => (
