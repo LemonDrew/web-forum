@@ -1,6 +1,7 @@
 import PostContainer from "./PostContainer";
 import { useLocation } from "react-router-dom";
 import AddPost from "./AddPost";
+import Navbar from "./Navbar";
 import React, { useState, useEffect } from "react"; // Import useEffect
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -127,8 +128,13 @@ function Forum() {
     }
   };
 
+
+
+
   return (
+  
     <Box sx={{ padding: 3 }}>
+      <Navbar user={user}/>
       <AddPost user={user} refreshData={refreshData} />
       <Box sx={{ marginTop: 3 }}>
         {data.map((post, index) => (
