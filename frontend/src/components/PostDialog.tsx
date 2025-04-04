@@ -31,6 +31,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 function PostDialog({ open, handleClose, currentPost, user, handleAddComment }) {
   const [newComment, setNewComment] = useState("");
 
+  console.log("currentPost is", currentPost)
   // Local function to handle comment submission
   const submitComment = () => {
     if (!newComment.trim()) return;
@@ -184,17 +185,17 @@ function PostDialog({ open, handleClose, currentPost, user, handleAddComment }) 
                             width: 36, 
                             height: 36, 
                             mr: 2,
-                            bgcolor: stringToColor(comment.Name)
+                            bgcolor: stringToColor(comment[0])
                           }}
                         >
-                          {getInitial(comment.Name)}
+                          {getInitial(comment[0])}
                         </Avatar>
                         <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                          {comment.Name}
+                          {comment[0]}
                         </Typography>
                       </Box>
                       <Box sx={{ p: 3 }}>
-                        <Typography variant="body1">{comment.Message}</Typography>
+                        <Typography variant="body1">{comment[1]}</Typography>
                       </Box>
                     </ListItem>
                   </Paper>

@@ -104,8 +104,6 @@ function Forum() {
 
     setCurrentPost(updatedPost);
 
-    console.log("Adding", commentText, "to", currentPost.identity_number)
-
     try {
       const response = await fetch(`http://localhost:8000/update/${currentPost.identity_number}`, {
         method: 'POST',
