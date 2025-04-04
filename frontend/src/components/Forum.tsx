@@ -2,41 +2,49 @@ import PostContainer from "./PostContainer";
 import { useLocation } from "react-router-dom";
 import AddPost from "./AddPost";
 import Navbar from "./Navbar";
-import React, { useState, useEffect } from "react"; // Import useEffect
+import React, { useState, useEffect } from "react";
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import CloseIcon from '@mui/icons-material/Close';
-import Slide from '@mui/material/Slide';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import Divider from '@mui/material/Divider';
+import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import Chip from '@mui/material/Chip';
+import Avatar from '@mui/material/Avatar';
+import PostDialog from './PostDialog';
+import ForumIcon from '@mui/icons-material/Forum';
+import PersonIcon from '@mui/icons-material/Person';
+import CommentIcon from '@mui/icons-material/Comment';
+import CircularProgress from '@mui/material/CircularProgress';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 
-// Slide transition for Dialog
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction="up" ref={ref} {...props} />;
+// Create a custom theme
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#3f51b5',
+    },
+    secondary: {
+      main: '#f50057',
+    },
+    background: {
+      default: '#f5f7fa',
+    },
+  },
 });
 
-// Page where the forum is located
 function Forum() {
   const location = useLocation();
-  const user = location.state?.username; // Retrieves username from login page
+  const user = location.state?.username;
 
   const [open, setOpen] = useState(false);
-  const [currentPost, setCurrentPost] = useState(null); // To hold the currently selected post for dialog
-  const [data, setData] = useState([]); // State to store fetched data
-  const [newComment, setNewComment] = useState(""); // State to hold the new comment input
-
+  const [currentPost, setCurrentPost] = useState(null);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const retrieveData = async () => {
+    setLoading(true);
     try {
       const response = await fetch('http://localhost:8000/retrieve', {
         method: 'GET',
@@ -52,28 +60,26 @@ function Forum() {
       const result = await response.json();
       console.log("-----------DATA IS---------", result);
 
-      // Assuming the data is a list of posts
       if (result && Array.isArray(result)) {
-        alert("Successfully retrieved posts!");
-        setData(result); // Update the state with fetched data
+        setData(result);
       } else {
         alert("Failed to retrieve posts: Data is not in expected format.");
       }
     } catch (error) {
       console.error("Error during fetch:", error);
       alert("Failed to retrieve posts. Please check the console for details.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Fetch data when the component mounts
   useEffect(() => {
-    retrieveData(); // Call the fetch function
-  }, []); // Empty dependency array ensures this runs only once on mount
-
+    retrieveData();
+  }, []);
 
   const refreshData = () => {
     retrieveData();
-  }
+  };
 
   const handleClickOpen = (post) => {
     setCurrentPost(post);
@@ -85,29 +91,19 @@ function Forum() {
     setCurrentPost(null);
   };
 
-  // Handle adding a new comment
-  const handleAddComment = async () => {
-    if (!newComment.trim()) return; // Do not submit empty comments
-
+  const handleAddComment = async (commentText) => {
     const newCommentObj = {
-      Name: user, // Assuming the username is stored in the `user` variable
-      Message: newComment,
+      Name: user,
+      Message: commentText,
     };
 
-    // Add the new comment to the current post
     const updatedPost = {
       ...currentPost,
       user_comments: [...currentPost.user_comments, newCommentObj],
     };
 
-    // Update the current post in the state
     setCurrentPost(updatedPost);
 
-    // Clear the comment input
-    setNewComment("");
-
-    // Ideally, send the new comment to the backend to save it
-    // For now, we'll just update the state
     try {
       const response = await fetch(`http://localhost:8000/update/${currentPost.id}`, {
         method: 'POST',
@@ -118,6 +114,7 @@ function Forum() {
       });
 
       if (response.ok) {
+        // Success notification could be improved with a snackbar instead of alert
         alert("Comment added successfully!");
       } else {
         alert("Failed to add comment.");
@@ -128,116 +125,139 @@ function Forum() {
     }
   };
 
+  // Function to get initial letter for avatar
+  const getInitial = (name) => {
+    return name ? name.charAt(0).toUpperCase() : '?';
+  };
 
-
+  // Function to generate a consistent color based on username
+  const stringToColor = (string) => {
+    let hash = 0;
+    for (let i = 0; i < string.length; i++) {
+      hash = string.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    let color = '#';
+    for (let i = 0; i < 3; i++) {
+      const value = (hash >> (i * 8)) & 0xFF;
+      color += ('00' + value.toString(16)).substr(-2);
+    }
+    return color;
+  };
 
   return (
-  
-    <Box sx={{ padding: 3, mt: 10 }}> {/* Adjust `mt` based on NavBar height */}
-      <Navbar user={user} />
-      <AddPost user={user} refreshData={refreshData} />
-      <Box sx={{ marginTop: 3 }}>
-        {data.map((post, index) => (
-          <Card key={index} sx={{ marginBottom: 2, boxShadow: 3 }}>
-            <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 1 }}>
-                {post.topic}
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 1 }}>
-                Posted by {post.username}
-              </Typography>
-              <Button
-                variant="contained"
-                onClick={() => handleClickOpen(post)}
-                sx={{ backgroundColor: '#1976d2', color: 'white', '&:hover': { backgroundColor: '#1565c0' } }}
-              >
-                See Comments
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
-
-      {/* Dialog Box - Start */}
-      <Dialog
-        fullScreen
-        open={open}
-        onClose={handleClose}
-        TransitionComponent={Transition}
-      >
-        {/* AppBar inside Dialog for header */}
-        <AppBar sx={{ position: 'relative' }}>
-          <Toolbar>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={handleClose}
-              aria-label="close"
-            >
-              <CloseIcon />
-            </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Post Details
+    <ThemeProvider theme={theme}>
+      <Box sx={{ 
+        bgcolor: 'background.default', 
+        minHeight: '100vh',
+        pt: 10, 
+        pb: 5 
+      }}>
+        <Navbar user={user} />
+        <Container maxWidth="md">
+          <Box sx={{ mb: 4, display: 'flex', alignItems: 'center' }}>
+            <ForumIcon sx={{ fontSize: 32, mr: 2, color: 'primary.main' }} />
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
+              Community Forum
             </Typography>
-          </Toolbar>
-        </AppBar>
-
-        <Box sx={{ padding: 3 }}>
-          {/* Render current post's details */}
-          {currentPost ? (
-            <>
-              <Typography variant="h4" sx={{ fontWeight: 'bold', marginBottom: 3 }}>
-                {currentPost.topic}
-              </Typography>
-              <Divider sx={{ marginBottom: 3 }} />
-              <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
-                Comments:
-              </Typography>
-
-              {/* Comments List */}
-              <List>
-                {currentPost.user_comments && currentPost.user_comments.length > 0 ? (
-                  currentPost.user_comments.map((comment, i) => (
-                    <ListItem key={i} sx={{ paddingLeft: 0 }}>
-                      <ListItemText
-                        primary={<Typography variant="body1" sx={{ fontWeight: 'bold' }}>{comment.Name}</Typography>}
-                        secondary={<Typography variant="body2">{comment.Message}</Typography>}
-                      />
-                    </ListItem>
-                  ))
-                ) : (
-                  <Typography variant="body2">No comments available.</Typography>
-                )}
-              </List>
-
-              {/* Add Comment Section */}
-              <Box sx={{ marginTop: 3 }}>
-                <TextField
-                  label="Add a comment"
-                  variant="outlined"
-                  fullWidth
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  multiline
-                  rows={4}
-                  sx={{ marginBottom: 2 }}
-                />
-                <Button
-                  variant="contained"
-                  onClick={handleAddComment}
-                  sx={{ backgroundColor: '#1976d2', color: 'white', '&:hover': { backgroundColor: '#1565c0' } }}
-                >
-                  Add Comment
-                </Button>
+          </Box>
+          
+          <AddPost user={user} refreshData={refreshData} />
+          
+          <Box sx={{ mt: 4 }}>
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                <CircularProgress />
               </Box>
-            </>
-          ) : (
-            <Typography variant="body1">No post selected.</Typography>
-          )}
-        </Box>
-      </Dialog>
-      {/* Dialog Box - End */}
-    </Box>
+            ) : data.length === 0 ? (
+              <Card sx={{ p: 4, textAlign: 'center' }}>
+                <Typography variant="h6" color="text.secondary">
+                  No posts yet. Be the first to start a discussion!
+                </Typography>
+              </Card>
+            ) : (
+              [...data].reverse().map((post, index) => (
+                <Card 
+                  key={index} 
+                  sx={{ 
+                    mb: 3, 
+                    borderRadius: 2,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 8px 16px rgba(0,0,0,0.12)',
+                    }
+                  }}
+                >
+                  <CardContent sx={{ p: 3 }}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={2} sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <Avatar 
+                          sx={{ 
+                            width: 56, 
+                            height: 56, 
+                            bgcolor: stringToColor(post.username),
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                          }}
+                        >
+                          {getInitial(post.username)}
+                        </Avatar>
+                      </Grid>
+                      <Grid item xs={12} sm={10}>
+                        <Box sx={{ mb: 2 }}>
+                          <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+                            {post.topic}
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                            <PersonIcon fontSize="small" color="action" sx={{ mr: 1 }} />
+                            <Typography variant="body2" color="text.secondary">
+                              Posted by {post.username}
+                            </Typography>
+                          </Box>
+                          {post.user_comments && (
+                            <Chip 
+                              icon={<CommentIcon />}
+                              label={`${post.user_comments.length} comment${post.user_comments.length !== 1 ? 's' : ''}`}
+                              size="small"
+                              sx={{ mr: 1 }}
+                            />
+                          )}
+                        </Box>
+                        <Button
+                          variant="contained"
+                          onClick={() => handleClickOpen(post)}
+                          sx={{ 
+                            borderRadius: 8,
+                            px: 3,
+                            py: 1,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            boxShadow: '0 4px 8px rgba(63, 81, 181, 0.2)',
+                            '&:hover': {
+                              boxShadow: '0 6px 12px rgba(63, 81, 181, 0.3)',
+                            }
+                          }}
+                        >
+                          View Discussion
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </Box>
+        </Container>
+
+        <PostDialog 
+          open={open} 
+          handleClose={handleClose} 
+          currentPost={currentPost} 
+          user={user} 
+          handleAddComment={handleAddComment} 
+        />
+      </Box>
+    </ThemeProvider>
   );
 }
 

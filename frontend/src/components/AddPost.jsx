@@ -4,7 +4,6 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
-import "./AddPost.css";
 
 function AddPost({ user, refreshData }) {  // Receive refreshData as a prop
     const [topic, setTopic] = useState("");
@@ -43,7 +42,7 @@ function AddPost({ user, refreshData }) {  // Receive refreshData as a prop
     };
   
     return (
-      <div className="addpost">
+      <div>
         <FormControl fullWidth style={{ marginBottom: "1rem" }}>
           <InputLabel id="demo-simple-select-label">Type</InputLabel>
           <Select
